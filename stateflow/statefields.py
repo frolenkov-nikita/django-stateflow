@@ -64,13 +64,14 @@ class StateFlowField(models.Field):
                  flow=None, **kwargs):
         if flow is None:
             raise ValueError("StateFlowField need to have defined flow")
+        self._flow_kwarg = flow  # for deconstruct
         self.flow, self.flow_path = resolve_flow(flow)
         models.Field.__init__(self, verbose_name, name, **kwargs)
 
     def get_internal_type(self):
         return "CharField"
 
-    def get_db_prep_value(self, value):
+    def get_prep_value(self, value):
         if value is None:
             return None
         elif isinstance(value, type) and issubclass(value, DjangoState):
@@ -94,6 +95,10 @@ class StateFlowField(models.Field):
         choices = [(None, '----')] + self.flow.state_choices()
         return forms.ChoiceField(choices=choices, widget=StateWidget)
 
+    def deconstruct(self):
+        name, path, args, kwargs = super(StateFlowField, self).deconstruct()
+        kwargs['flow'] = self._flow_kwarg
+        return name, path, args, kwargs
 
 # Add suport of StateFlowField for South
 def add_south_introspector_rules():
