@@ -1,6 +1,7 @@
+from importlib import import_module
+
 from django.db import models
 from django import forms
-from django.utils.importlib import import_module
 
 from stateclass import DjangoState, Flow
 
