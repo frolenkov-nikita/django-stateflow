@@ -1,9 +1,56 @@
 from django.db import models
 from django import forms
-from django.utils.importlib import import_module
+from importlib import import_module
 
 from stateclass import DjangoState, Flow
 
+
+
+class SubfieldBase(type):
+    """
+    A metaclass for custom Field subclasses. This ensures the model's attribute
+    has the descriptor protocol attached to it.
+    """
+    def __new__(cls, name, bases, attrs):
+        new_class = super(SubfieldBase, cls).__new__(cls, name, bases, attrs)
+        new_class.contribute_to_class = make_contrib(
+            new_class, attrs.get('contribute_to_class')
+        )
+        return new_class
+
+
+class Creator(object):
+    """
+    A placeholder class that provides a way to set the attribute on the model.
+    """
+    def __init__(self, field):
+        self.field = field
+
+    def __get__(self, obj, type=None):
+        if obj is None:
+            return self
+        return obj.__dict__[self.field.name]
+
+    def __set__(self, obj, value):
+        obj.__dict__[self.field.name] = self.field.to_python(value)
+
+
+def make_contrib(superclass, func=None):
+    """
+    Returns a suitable contribute_to_class() method for the Field subclass.
+    If 'func' is passed in, it is the existing contribute_to_class() method on
+    the subclass and it is called before anything else. It is assumed in this
+    case that the existing contribute_to_class() calls all the necessary
+    superclass methods.
+    """
+    def contribute_to_class(self, cls, name, **kwargs):
+        if func:
+            func(self, cls, name, **kwargs)
+        else:
+            super(superclass, self).contribute_to_class(cls, name, **kwargs)
+        setattr(cls, self.name, Creator(self))
+
+    return contribute_to_class
 
 
 class StateWidget(forms.Select):
@@ -57,8 +104,7 @@ def resolve_flow(flow_name):
 
 
 class StateFlowField(models.Field):
-
-    __metaclass__ = models.SubfieldBase
+    __metaclass__ = SubfieldBase
 
     def __init__(self, verbose_name=None, name=None,
                  flow=None, **kwargs):
@@ -78,6 +124,9 @@ class StateFlowField(models.Field):
             return value.get_value()
         else:
             return str(value)
+
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
 
     def to_python(self, value):
         if isinstance(value, type) and issubclass(value, DjangoState):
@@ -99,26 +148,3 @@ class StateFlowField(models.Field):
         name, path, args, kwargs = super(StateFlowField, self).deconstruct()
         kwargs['flow'] = self._flow_kwarg
         return name, path, args, kwargs
-
-# Add suport of StateFlowField for South
-def add_south_introspector_rules():
-    from south.modelsinspector import add_introspection_rules
-
-    rules = [
-        (
-            (StateFlowField, ),
-            [],
-            {
-                "flow": ["flow_path", {}],
-            }
-        ),
-    ]
-
-    add_introspection_rules(rules, ["^stateflow\.statefields"])
-
-try:
-    import south
-except ImportError:
-    pass
-else:
-    add_south_introspector_rules()
