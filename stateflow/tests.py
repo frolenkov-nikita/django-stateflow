@@ -78,41 +78,41 @@ class TransitionTest(TestCase):
 
     def test_forward(self):
         obj = Article()
-        self.assertEquals(obj.state, New)
+        self.assertEqual(obj.state, New)
 
         Submit.apply(obj, role='writer')
-        self.assertEquals(obj.state, Submitted)
+        self.assertEqual(obj.state, Submitted)
 
 
     def test_wrong_apply(self):
         obj = Article()
-        self.assertEquals(obj.state, New)
+        self.assertEqual(obj.state, New)
 
         self.assertRaises(stateclass.IncorrectStateError,
                           Reject.apply, obj, role='editor')
 
     def test_permissions(self):
         obj = Article()
-        self.assertEquals(obj.state, New)
+        self.assertEqual(obj.state, New)
 
         Submit.apply(obj, role='writer')
-        self.assertEquals(obj.state, Submitted)
+        self.assertEqual(obj.state, Submitted)
 
         self.assertRaises(stateclass.TransitionFailedError,
                           Approve.apply, obj, role='writer')
 
     def test_backward(self):
         obj = Article()
-        self.assertEquals(obj.state, New)
+        self.assertEqual(obj.state, New)
 
         Submit.apply(obj, role='writer')
-        self.assertEquals(obj.state, Submitted)
+        self.assertEqual(obj.state, Submitted)
 
         Reject.apply(obj, role='editor')
-        self.assertEquals(obj.state, Rejected)
+        self.assertEqual(obj.state, Rejected)
 
         Submit.apply(obj, role='writer')
-        self.assertEquals(obj.state, Submitted)
+        self.assertEqual(obj.state, Submitted)
 
 
 class StateFieldTest(TestCase):
@@ -121,5 +121,5 @@ class StateFieldTest(TestCase):
 
         self.assertTrue(isinstance(form.fields['state'].widget,
                                    statefields.StateWidget))
-        self.assertEquals(len(form.fields['state'].choices),
+        self.assertEqual(len(form.fields['state'].choices),
                           len(ArticleFlow.states) + 1)

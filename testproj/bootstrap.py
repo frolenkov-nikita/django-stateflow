@@ -72,7 +72,7 @@ def do(func, *args, **kwargs):
         doc = func.__name__
     func_args = ', '.join(str(a) for a in args)
     func_kwargs = ', '.join("%s=%s" % (k, str(v))
-                            for k, v in kwargs.iteritems())
+                            for k, v in kwargs.items())
     msg = "%s... %s %s\n" % (doc, func_args, func_kwargs)
     sys.stderr.write(msg)
     return func(*args, **kwargs)

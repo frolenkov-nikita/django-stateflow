@@ -2,7 +2,7 @@ from django.db import models
 from django import forms
 from importlib import import_module
 
-from stateclass import DjangoState, Flow
+from .stateclass import DjangoState, Flow
 
 
 
@@ -62,8 +62,8 @@ class StateWidget(forms.Select):
         def render_option(option_value, option_label):
             option_value = force_unicode(option_value)
             selected_html = (option_value in selected_choices) \
-                and u' selected="selected"' or ''
-            return u'<option value="%s"%s>%s</option>' % (
+                and ' selected="selected"' or ''
+            return '<option value="%s"%s>%s</option>' % (
                 escape(option_value), selected_html,
                 conditional_escape(force_unicode(option_label)))
         # Normalize to strings.
@@ -74,14 +74,14 @@ class StateWidget(forms.Select):
         output = []
         for option_value, option_label in chain(self.choices, choices):
             if isinstance(option_label, (list, tuple)):
-                output.append(u'<optgroup label="%s">' %
+                output.append('<optgroup label="%s">' %
                               escape(force_unicode(option_value)))
                 for option in option_label:
                     output.append(render_option(*option))
-                output.append(u'</optgroup>')
+                output.append('</optgroup>')
             else:
                 output.append(render_option(option_value, option_label))
-        return u'\n'.join(output)
+        return '\n'.join(output)
 
 
 def load_flow(flow_path):
@@ -103,9 +103,7 @@ def resolve_flow(flow_name):
         return load_flow(flow_name), flow_name
 
 
-class StateFlowField(models.Field):
-    __metaclass__ = SubfieldBase
-
+class StateFlowField(models.Field, metaclass=SubfieldBase):
     def __init__(self, verbose_name=None, name=None,
                  flow=None, **kwargs):
         if flow is None:

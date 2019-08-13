@@ -53,16 +53,12 @@ class FlowMetaclass(type):
 
 
 
-class State(object):
-
-    __metaclass__ = StateMetaclass
+class State(object, metaclass=StateMetaclass):
 
     abstract = True
 
 
-class Transition(object):
-
-    __metaclass__ = TransitionMetaclass
+class Transition(object, metaclass=TransitionMetaclass):
 
     abstract = True
 
@@ -72,9 +68,7 @@ class Transition(object):
             "Apply method should be defined in subclasses")
 
 
-class Flow(object):
-
-    __metaclass__ = FlowMetaclass
+class Flow(object, metaclass=FlowMetaclass):
 
     states = []
     transitions = []
