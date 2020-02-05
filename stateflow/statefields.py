@@ -131,13 +131,6 @@ class StateFlowField(models.Field, metaclass=SubfieldBase):
             return value
         return self.flow.get_state(value)
 
-    def value_to_string(self, obj):
-        """
-        Returns a string value of this field from the passed obj.
-        This is used by the serialization framework.
-        """
-        return self._get_val_from_obj(obj).get_value()
-
     def formfield(self, **kwargs):
         choices = [(None, '----')] + self.flow.state_choices()
         return forms.ChoiceField(choices=choices, widget=StateWidget)
